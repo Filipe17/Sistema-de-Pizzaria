@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#150800">
+<title>Delivery</title>
+<style>
+:root{
+  --vm:#C8102E;--vm2:#ff3a55;
+  --ouro:#E8A020;--ouro2:#ffd070;
+  --bg:#150800;--surface:#1e0e00;--card:#281200;--card2:#331800;
+  --txt:#f0e0cc;--muted:#9a7050;--line:rgba(255,255,255,.07);
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh}
+
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;background:var(--vm);border-bottom:none;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:background .3s;}
+.top-nome{font-family:'Georgia',serif;font-size:17px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top-tag{font-size:11px;color:rgba(255,255,255,.75);margin-top:1px}
+.btn-cart{background:rgba(255,255,255,.2);color:#fff;border:1.5px solid rgba(255,255,255,.35);border-radius:10px;padding:9px 14px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;flex-shrink:0;transition:background .15s;}
+.cart-n{background:#fff;color:var(--vm);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:900;display:none}
+.cart-n.on{display:block}
+.conteudo{padding:70px 12px 120px}
+
+/* Banner delivery */
+.banner-delivery{background:#fff;border:1.5px solid rgba(0,0,0,.07);border-radius:14px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.banner-delivery .icon{font-size:28px}
+.banner-delivery .info{flex:1}
+.banner-delivery .titulo{font-size:14px;font-weight:800;color:var(--vm)}
+.banner-delivery .sub{font-size:11px;color:#64748b;margin-top:2px;line-height:1.5}
+.taxa-badge{background:rgba(0,0,0,.05);border:1px solid rgba(0,0,0,.1);color:#64748b;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;white-space:nowrap}
+
+/* Grupos */
+.grupo{margin-bottom:24px}
+.grupo-tit{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding:0 2px}
+.gicon{font-size:20px}
+.gnome{font-size:15px;font-weight:900;color:var(--vm)}
+.gcount{font-size:11px;color:#64748b;background:rgba(0,0,0,.06);border-radius:20px;padding:2px 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+
+/* Cards */
+.pcard{background:#fff;border:1.5px solid rgba(0,0,0,.07);border-radius:var(--r);padding:14px 10px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;position:relative;transition:border-color .15s,background .15s,transform .12s;user-select:none;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.pcard:active{transform:scale(.92)}
+.pcard.selecionado{border-color:var(--vm);background:rgba(214,40,40,.04)}
+.pcard-qtd{position:absolute;top:7px;right:7px;background:var(--vm);color:#fff;width:21px;height:21px;border-radius:50%;font-size:11px;font-weight:900;align-items:center;justify-content:center;display:none}
+.pcard.selecionado .pcard-qtd{display:flex}
+.pcard-em{font-size:36px;line-height:1}
+.pcard-foto{width:48px;height:48px;object-fit:cover;border-radius:8px;display:block}
+.pcard-nome{font-size:12px;font-weight:700;color:#1e293b;line-height:1.25}
+.pcard-desc{font-size:10px;color:#64748b;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pcard-preco{font-size:13px;font-weight:700;color:var(--vm);margin-top:3px}
+.pcard-tags{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.ptag{font-size:9px;font-weight:700;background:rgba(214,40,40,.08);color:var(--vm);border-radius:20px;padding:2px 6px;letter-spacing:.3px}
+.pcard-mm{font-size:10px;color:#94a3b8;margin-top:3px;font-style:italic}
+.grupo-sep{height:1px;background:rgba(0,0,0,.07);margin:16px 0}
+
+/* Sheet carrinho */
+.sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;opacity:0;pointer-events:none;transition:opacity .25s}
+.sheet-bg.on{opacity:1;pointer-events:all}
+.sheet{position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;z-index:201;max-height:85vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,0,.67,0)}
+.sheet.on{transform:translateY(0)}
+.sheet-handle{width:40px;height:4px;background:rgba(0,0,0,.1);border-radius:2px;margin:12px auto 0}
+.sheet-hdr{padding:12px 16px 10px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);flex-shrink:0}
+.sheet-titulo{font-size:16px;font-weight:900}
+.btn-close{background:rgba(0,0,0,.06);border:none;color:#374151;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer}
+.sheet-body{flex:1;overflow-y:auto;padding:12px 16px}
+.crow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.crow-nome{flex:1;font-size:13px;font-weight:700;line-height:1.3}
+.crow-sub{font-size:13px;font-weight:700;color:var(--ouro2);min-width:60px;text-align:right}
+.ctrl{background:rgba(255,255,255,.1);border:none;color:var(--txt);width:28px;height:28px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:700}
+.crow-total{display:flex;justify-content:space-between;align-items:center;padding:14px 0 4px;font-weight:900}
+.taxa-linha{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12px;color:var(--muted)}
+
+/* Formulário de entrega */
+.form-entrega{background:var(--card);border-radius:14px;padding:16px;margin-top:12px}
+.form-entrega h3{font-size:14px;font-weight:900;color:var(--ouro);margin-bottom:12px}
+.campo{margin-bottom:10px}
+.campo label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px}
+.campo input,.campo select,.campo textarea{width:100%;background:#1a0a00;border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--txt);font:inherit;font-size:14px;outline:none;transition:border-color .15s}
+.campo input:focus,.campo select:focus,.campo textarea:focus{border-color:var(--ouro)}
+.campo textarea{resize:none;height:64px}
+.campo select option{background:#1a0a00}
+.campos-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-fin{width:100%;background:var(--vm);color:#fff;border:none;border-radius:12px;padding:16px;font:inherit;font-size:15px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px}
+.btn-fin:disabled{opacity:.5;cursor:default}
+.spin{width:18px;height:18px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;display:none}
+.spin.on{display:block;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* Modal tamanho */
+.sz-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:300;display:none;align-items:flex-end;justify-content:center}
+.sz-bg.on{display:flex}
+.sz-box{background:#1e0e00;border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:20px 16px 32px;max-height:80vh;overflow-y:auto}
+.sz-titulo{font-size:16px;font-weight:900;margin-bottom:14px;text-align:center}
+.sz-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.sz-btn{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:12px 6px;font:inherit;color:var(--txt);cursor:pointer;text-align:center}
+.sz-btn.sel{border-color:var(--ouro);background:var(--card2)}
+.sz-btn .sz-label{font-size:13px;font-weight:700}
+.sz-btn .sz-price{font-size:12px;color:var(--ouro2);margin-top:3px}
+.sz-btn:disabled{opacity:.25;cursor:default}
+.mm-titulo{display:none;align-items:center;justify-content:space-between;margin-bottom:10px;padding:10px 0;border-top:1px solid var(--line)}
+.mm-toggle{background:rgba(200,16,46,.15);border:1px solid var(--vm);color:#ff8099;border-radius:20px;padding:5px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.mm-toggle.on{background:var(--vm);color:#fff}
+.mm-lista{display:none;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.mm-lista.on{display:grid}
+.mm-item{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:10px;cursor:pointer;font-size:12px;text-align:center}
+.mm-item.sel{border-color:var(--ouro);background:var(--card2)}
+.sz-confirmar{width:100%;background:var(--vm);color:#fff;border:none;border-radius:12px;padding:14px;font:inherit;font-size:14px;font-weight:900;cursor:pointer;margin-top:6px}
+.sz-confirmar:disabled{opacity:.4;cursor:default}
+
+/* Modal confirmação */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:400;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-bg.on{display:flex}
+.modal-box{background:#1e0e00;border-radius:20px;padding:32px 24px;text-align:center;max-width:340px;width:100%;border:1px solid rgba(232,160,32,.2)}
+.modal-icon{font-size:56px;margin-bottom:12px}
+.modal-titulo{font-size:20px;font-weight:900;margin-bottom:6px}
+.modal-num{font-size:28px;font-weight:900;color:var(--ouro);margin:8px 0}
+.modal-info{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px}
+.modal-btn{background:var(--vm);color:#fff;border:none;border-radius:12px;padding:14px 28px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+</style>
+
+<script>
+// ── Bloqueia F5 e Ctrl+R (atualização de página) ──
+(function(){
+  document.addEventListener('keydown', function(e){
+    const f5    = e.key === 'F5';
+    const ctrlR = (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r';
+    if(f5 || ctrlR){ e.preventDefault(); e.stopPropagation(); }
+  }, true);
+  window.addEventListener('beforeunload', function(e){
+    e.preventDefault(); e.returnValue = '';
+  });
+})();
+</script>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="top-nome" id="topNome">Pizzaria</div>
+    <div class="top-tag">🛵 Delivery</div>
+  </div>
+  <button class="btn-cart" onclick="abrirCarrinho()">
+    🛒 Carrinho
+    <span class="cart-n" id="cartN">0</span>
+  </button>
+</div>
+
+<div class="conteudo" id="conteudo">
+  <div style="text-align:center;padding:60px 20px;color:var(--muted)">Carregando cardápio...</div>
+</div>
+
+<!-- Sheet Carrinho + Formulário -->
+<div class="sheet-bg" id="sheetBg" onclick="fecharCarrinho()"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-hdr">
+    <span class="sheet-titulo">🛒 Seu pedido</span>
+    <button class="btn-close" onclick="fecharCarrinho()">×</button>
+  </div>
+  <div class="sheet-body" id="sheetBody">
+    <div id="carrinhoLista"></div>
+
+    <!-- Formulário de entrega -->
+    <div class="form-entrega">
+      <h3>📍 Dados para entrega</h3>
+      <div class="campo" style="position:relative">
+        <label>Nome completo *</label>
+        <input id="dlNome" type="text" placeholder="Seu nome" autocomplete="off" oninput="buscarCliente(this.value)" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('dlTel').focus()}">
+        <div id="autocompleteLista" style="display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border:1.5px solid #e5e7eb;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.12);z-index:999;max-height:220px;overflow-y:auto;margin-top:2px"></div>
+      </div>
+      <div class="campo">
+        <label>Telefone / WhatsApp *</label>
+        <input id="dlTel" type="tel" placeholder="(11) 99999-9999" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('dlEnd').focus()}">
+      </div>
+      <div class="campo">
+        <label>Endereço completo *</label>
+        <input id="dlEnd" type="text" placeholder="Rua, número, bairro" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('dlRef').focus()}">
+      </div>
+      <div class="campo">
+        <label>Ponto de referência</label>
+        <input id="dlRef" type="text" placeholder="Ex: próximo ao mercado..." onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('dlTroco').focus()}">
+      </div>
+      <div class="campo">
+        <label>Forma de pagamento *</label>
+        <select id="dlPag">
+          <option value="">Selecione...</option>
+          <option value="Dinheiro">💵 Dinheiro</option>
+          <option value="Cartão de débito">💳 Cartão de débito</option>
+          <option value="Cartão de crédito">💳 Cartão de crédito</option>
+          <option value="Pix">📱 Pix</option>
+        </select>
+      </div>
+      <div class="campo" id="campaTroco" style="display:none">
+        <label>Troco para quanto?</label>
+        <input id="dlTroco" type="text" placeholder="Ex: R$ 50,00" onkeydown="if(event.key==='Enter'){event.preventDefault();abrirCarrinho()}">
+      </div>
+      <div class="campo" id="campoBairro">
+        <label>Bairro de entrega *</label>
+        <select id="dlBairro" onchange="selecionarBairro()">
+          <option value="">Selecione seu bairro...</option>
+        </select>
+        <div id="taxaBairroInfo" style="font-size:11px;color:var(--ouro2);margin-top:4px;display:none"></div>
+      </div>
+      <div class="campo">
+        <label>Observações</label>
+        <textarea id="dlObs" placeholder="Alguma observação sobre o pedido..."></textarea>
+      </div>
+    </div>
+
+    <div class="taxa-linha">
+      <span>Subtotal</span>
+      <span id="subTotalVal">R$ 0,00</span>
+    </div>
+    <div class="taxa-linha">
+      <span>🛵 Taxa de entrega</span>
+      <span id="taxaVal" style="color:var(--ouro2)">R$ 0,00</span>
+    </div>
+    <div class="crow-total">
+      <span>Total</span>
+      <span id="totalVal">R$ 0,00</span>
+    </div>
+
+    <button class="btn-fin" id="btnFin" onclick="finalizar()" disabled>
+      <div class="spin" id="spinEl"></div>
+      Confirmar pedido
+    </button>
+  </div>
+</div>
+
+<!-- Modal tamanho/meia a meia -->
+<div class="sz-bg" id="szBg">
+  <div class="sz-box">
+    <div class="sz-titulo" id="szTitulo">Escolha o tamanho</div>
+    <div class="sz-opts">
+      <button class="sz-btn" id="szBroto" onclick="selecionarTam('broto')">
+        <div class="sz-label">Broto</div><div class="sz-price" id="spBroto"></div>
+      </button>
+      <button class="sz-btn" id="szMedia" onclick="selecionarTam('media')">
+        <div class="sz-label">Média</div><div class="sz-price" id="spMedia"></div>
+      </button>
+      <button class="sz-btn" id="szGrande" onclick="selecionarTam('grande')">
+        <div class="sz-label">Grande</div><div class="sz-price" id="spGrande"></div>
+      </button>
+    </div>
+    <div class="mm-titulo" id="mmTitulo">
+      <span style="font-size:13px;font-weight:700">½ Meia a meia</span>
+      <button class="mm-toggle" id="mmToggle" onclick="toggleMM()">+ Ativar</button>
+    </div>
+    <div class="mm-lista" id="mmLista1"></div>
+    <button class="sz-confirmar" id="szConfirmar" onclick="confirmarPizza()" disabled>Adicionar ao Pedido</button>
+    <button onclick="fecharSzModal()" style="width:100%;background:transparent;border:none;color:var(--muted);padding:12px;font:inherit;font-size:13px;cursor:pointer;margin-top:4px">Cancelar</button>
+  </div>
+</div>
+
+<!-- Modal confirmação pedido -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal-box">
+    <div class="modal-icon">🛵</div>
+    <div class="modal-titulo">Pedido confirmado!</div>
+    <div class="modal-num" id="modalNum">#000</div>
+    <div class="modal-info">
+      Seu pedido foi recebido pela pizzaria.<br>
+      Acompanhe o status aqui mesmo.<br>
+      <span style="color:var(--ouro2);font-size:12px" id="modalEta"></span>
+    </div>
+    <button class="modal-btn" onclick="irAcompanhar()">📍 Acompanhar pedido</button>
+  </div>
+</div>
+
+<script>
+const IP   = window.IP   || location.hostname;
+const PORT = window.PORT || 5000;
+const BASE = (location.protocol === 'https:' || location.port === '' || location.port === '443' || location.port === '80')
+  ? location.origin
+  : 'http://' + IP + ':' + PORT;
+let TAXA = 0;
+let bairros = [];
+
+let cardapio = [], carrinho = [], pedidoNum = null;
+let szItem = null, szTam = null, szMM = false, szSabor2 = null;
+
+function moeda(v){ return 'R$ ' + Number(v).toFixed(2).replace('.',','); }
+
+// Fetch com timeout de 8s para não travar infinito
+async function fetchTimeout(url, ms=8000){
+  const ctrl = new AbortController();
+  const tid = setTimeout(()=>ctrl.abort(), ms);
+  try{
+    const r = await fetch(url, {signal: ctrl.signal});
+    clearTimeout(tid);
+    return r;
+  }catch(e){ clearTimeout(tid); throw e; }
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+
+
+
+// ── Sincronização completa de cores com o admin ──
+function aplicarCorConfig(cfg){
+  if(!cfg.paleta_primary) return;
+
+  const primary  = cfg.paleta_primary;   // cor principal (botões, destaques)
+  const bg       = cfg.paleta_bg;        // fundo da página
+  const txt      = cfg.paleta_text;      // texto principal
+  const drawer   = cfg.paleta_drawer;    // cor do menu/superfície
+
+  // Calcula variações automáticas
+  function hexToRgb(hex){
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return {r,g,b};
+  }
+  function mix(hex, ratio){ // mistura com branco ou preto
+    const {r,g,b} = hexToRgb(hex);
+    if(ratio > 0){ // clarear
+      return `rgb(${Math.round(r+(255-r)*ratio)},${Math.round(g+(255-g)*ratio)},${Math.round(b+(255-b)*ratio)})`;
+    } else { // escurecer
+      return `rgb(${Math.round(r*(1+ratio))},${Math.round(g*(1+ratio))},${Math.round(b*(1+ratio))})`;
+    }
+  }
+
+  // Detecta se paleta é escura ou clara pelo bg
+  const {r,g,b} = hexToRgb(bg || '#f5f0eb');
+  const luminancia = (r*299 + g*587 + b*114) / 1000;
+  const escuro = luminancia < 128;
+
+  // Calcula card e surface baseado no bg
+  const cardBg     = escuro ? mix(bg,  0.05) : mix(bg, -0.03);
+  const card2Bg    = escuro ? mix(bg,  0.10) : mix(bg, -0.06);
+  const surfaceBg  = escuro ? mix(bg,  0.03) : mix(bg, -0.02);
+  const lineColor  = escuro ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.08)';
+  const mutedColor = escuro ? 'rgba(255,255,255,.45)' : 'rgba(0,0,0,.45)';
+  const ouroColor  = primary; // usa a cor primária no lugar do dourado
+
+  const rs = document.documentElement.style;
+  rs.setProperty('--vm',      primary);
+  rs.setProperty('--vm2',     mix(primary, 0.15));
+  rs.setProperty('--ouro',    ouroColor);
+  rs.setProperty('--ouro2',   mix(primary, 0.2));
+  rs.setProperty('--bg',      bg);
+  rs.setProperty('--surface', surfaceBg);
+  rs.setProperty('--card',    cardBg);
+  rs.setProperty('--card2',   card2Bg);
+  rs.setProperty('--txt',     txt);
+  rs.setProperty('--muted',   mutedColor);
+  rs.setProperty('--line',    lineColor);
+
+  // Topbar usa a cor primária forte
+  document.querySelectorAll('.topbar').forEach(el=>{
+    el.style.background = primary;
+    el.style.border = 'none';
+  });
+  document.querySelectorAll('.top-nome').forEach(el=>{ el.style.color='#fff'; });
+  document.querySelectorAll('.top-tag').forEach(el=>{ el.style.color='rgba(255,255,255,.75)'; });
+  // Banner usa a cor primária no título
+  document.querySelectorAll('.banner-delivery .titulo').forEach(el=>{ el.style.color=primary; });
+  // Cards — preco e ptag usam cor primária
+  rs.setProperty('--vm-light', `rgba(${hexToRgb(primary).r},${hexToRgb(primary).g},${hexToRgb(primary).b},.08)`);
+  // Sheet e modais também
+  document.querySelectorAll('.sheet, .sz-box, .modal-box').forEach(el=>{
+    el.style.background = cardBg;
+  });
+  // Campos de formulário
+  document.querySelectorAll('.campo input, .campo select, .campo textarea').forEach(el=>{
+    el.style.background  = surfaceBg;
+    el.style.borderColor = lineColor;
+    el.style.color       = txt;
+  });
+  // Meta theme-color
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', bg);
+
+  // Aplica bg no body diretamente
+  document.body.style.background = bg;
+  document.body.style.color      = txt;
+}
+
+
+// ── Sincroniza paleta do admin automaticamente ──
+let _ultimaPaleta = null;
+async function sincronizarCores(){
+  try{
+    const r = await fetchTimeout(BASE + '/api/config', 3000);
+    if(!r.ok) return;
+    const cfg = await r.json();
+    const paleta = cfg.paleta_primary || '';
+    if(paleta !== _ultimaPaleta){
+      _ultimaPaleta = paleta;
+      aplicarCorConfig(cfg);
+    }
+  }catch(e){}
+}
+setInterval(sincronizarCores, 1000);
+
+async function init(){
+  try{
+    const cr  = await fetchTimeout(BASE + '/api/config');
+    const cfg = await cr.json();
+    if(cfg.nome){ document.getElementById('topNome').textContent = cfg.nome; document.title = cfg.nome + ' — Delivery'; }
+    aplicarCorConfig(cfg);
+  }catch(e){}
+
+  try{
+    const pr = await fetchTimeout(BASE + '/api/cardapio');
+    cardapio = await pr.json();
+  }catch(e){
+    document.getElementById('conteudo').innerHTML =
+      '<div style="text-align:center;padding:60px 20px">'
+      +'<div style="font-size:44px;margin-bottom:12px">⚠️</div>'
+      +'<div style="font-size:15px;font-weight:700;color:#f87171;margin-bottom:8px">Sem conexão</div>'
+      +'<div style="font-size:12px;color:var(--muted)">Verifique sua internet e tente novamente.</div>'
+      +'<button onclick="location.reload()" style="margin-top:16px;background:var(--vm);color:#fff;border:none;border-radius:10px;padding:10px 22px;font-size:14px;font-weight:700;cursor:pointer">🔄 Tentar novamente</button>'
+      +'</div>';
+    return;
+  }
+
+  // Carrega bairros
+  try{
+    const br = await fetchTimeout(BASE + '/api/bairros');
+    bairros = await br.json();
+    const sel = document.getElementById('dlBairro');
+    if(sel && bairros.length){
+      bairros.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b.id;
+        opt.dataset.taxa = b.taxa;
+        opt.textContent = b.nome + ' — R$ ' + Number(b.taxa).toFixed(2).replace('.',',');
+        sel.appendChild(opt);
+      });
+    } else if(sel){
+      document.getElementById('campoBairro').style.display = 'none';
+    }
+  }catch(e){}
+
+  document.getElementById('taxaVal').textContent = 'Selecione o bairro';
+  renderCardapio();
+  setInterval(syncCardapio, 20000);
+
+  // Troco só aparece para dinheiro
+  document.getElementById('dlPag').addEventListener('change', function(){
+    document.getElementById('campaTroco').style.display = this.value === 'Dinheiro' ? 'block' : 'none';
+  });
+}
+
+// ── Bairro / Taxa ────────────────────────────────────────────────
+function selecionarBairro(){
+  const sel = document.getElementById('dlBairro');
+  const opt = sel.options[sel.selectedIndex];
+  if(opt && opt.dataset.taxa !== undefined){
+    TAXA = parseFloat(opt.dataset.taxa) || 0;
+    const info = document.getElementById('taxaBairroInfo');
+    info.style.display = 'block';
+    info.textContent = TAXA > 0 ? '🛵 Taxa de entrega: ' + moeda(TAXA) : '🛵 Entrega grátis neste bairro!';
+    document.getElementById('taxaVal').textContent = TAXA > 0 ? moeda(TAXA) : 'Grátis';
+    renderSheet();
+  }
+}
+
+// ── Sync tempo real ───────────────────────────────────────────────
+async function syncCardapio(){
+  try{
+    const r = await fetchTimeout(BASE + '/api/cardapio');
+    const novo = await r.json();
+    if(JSON.stringify(novo) !== JSON.stringify(cardapio)){
+      cardapio = novo;
+      renderCardapio();
+    }
+  }catch(e){}
+}
+
+// ── Renderiza cardápio ────────────────────────────────────────────
+function renderCardapio(){
+  // Mapa de ícones por categoria — aceita qualquer categoria do banco
+  const catIcon = {
+    'Clássicas':'🍕','Tradicionais':'🍕','Especiais':'⭐','Premium':'👑',
+    'Doces':'🍫','Bebidas':'🥤','Outros':'🍽️'
+  };
+  const catEmoji = {
+    'Clássicas':['🍕','🧀','🫙'],'Tradicionais':['🍕','🧀','🫙'],
+    'Especiais':['⭐','🏆','✨'],'Premium':['👑','💎','🌟'],
+    'Doces':['🍫','🍓','🍦'],'Bebidas':['🥤','🧃','🍺'],'Outros':['🍽️','🥘','🍱']
+  };
+  // Ordem preferida — categorias ausentes ficam no final
+  const ordemCat = ['Clássicas','Tradicionais','Especiais','Premium','Doces','Bebidas','Outros'];
+
+  // Detecta categorias reais do banco
+  const catsNoBanco = [...new Set(cardapio.map(p=>p.categoria))];
+  const catsOrdenadas = [
+    ...ordemCat.filter(c => catsNoBanco.includes(c)),
+    ...catsNoBanco.filter(c => !ordemCat.includes(c))
+  ];
+
+  const el = document.getElementById('conteudo');
+
+  if(!cardapio.length){
+    el.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--muted)">Nenhum item no cardápio.</div>';
+    return;
+  }
+
+  // Banner
+  let html = '<div class="banner-delivery">'
+    +'<span class="icon">🛵</span>'
+    +'<div class="info">'
+    +'<div class="titulo">Delivery disponível</div>'
+    +'<div class="sub">Faça seu pedido e receba em casa<br>'
+    +(bairros.length > 0 ? 'Taxa varia por bairro — selecione no pedido' : '<b style="color:#4ade80">Entrega grátis!</b>')
+    +'</div></div>'
+    +(bairros.length > 0 ? '<span class="taxa-badge">Por bairro</span>' : '<span class="taxa-badge" style="background:rgba(74,222,128,.15);border-color:rgba(74,222,128,.3);color:#4ade80">Grátis</span>')
+    +'</div>';
+
+  catsOrdenadas.forEach((cat, gi) => {
+    const g = { cat, label: cat, icon: catIcon[cat]||'🍽️', emojis: catEmoji[cat]||['🍽️','🥘','🍱'] };
+    const itens = cardapio.filter(p => p.categoria === g.cat);
+    if(!itens.length) return;
+    if(gi > 0) html += '<div class="grupo-sep"></div>';
+    html += '<div class="grupo">'
+      +'<div class="grupo-tit"><span class="gicon">'+g.icon+'</span><span class="gnome">'+g.label+'</span><span class="gcount">'+itens.length+' itens</span></div>'
+      +'<div class="grid">'
+      +itens.map((it, idx) => {
+        const em = g.emojis[idx % g.emojis.length];
+        const qc = carrinho.filter(c => c.id === it.id).reduce((s,c)=>s+c.qtd,0);
+        const desc2 = it.descricao ? '<span class="pcard-desc">'+it.descricao+'</span>' : '';
+        const fotoEl = it.imagem
+          ? '<img class="pcard-foto" src="'+BASE+'/api/imagem/'+it.imagem+'" alt="'+it.nome+'" loading="lazy">'
+          : '<span class="pcard-em">'+em+'</span>';
+        let precoStr;
+        if(it.tem_tamanho){
+          const minP = Math.min(...[it.preco_broto,it.preco_media,it.preco_grande].filter(v=>v>0));
+          precoStr = '<span class="pcard-preco">a partir de '+moeda(minP)+'</span>'
+            +'<span class="pcard-tags"><span class="ptag">Broto</span><span class="ptag">Média</span><span class="ptag">Grande</span></span>'
+            +'<span class="pcard-mm">½ Meia a meia</span>';
+        } else {
+          precoStr = '<span class="pcard-preco">'+moeda(it.preco)+'</span>';
+        }
+        return '<div class="pcard '+(qc>0?'selecionado':'')+'" id="pc-'+it.id+'" data-id="'+it.id+'" data-em="'+encodeURIComponent(em)+'" onclick="addItemEl(this)">'
+          +'<span class="pcard-qtd" id="pq-'+it.id+'">'+(qc||'')+'</span>'
+          +fotoEl
+          +'<span class="pcard-nome">'+it.nome+'</span>'
+          +desc2+precoStr+'</div>';
+      }).join('')
+      +'</div></div>';
+  });
+
+  el.innerHTML = html;
+}
+
+// ── Adicionar item ────────────────────────────────────────────────
+function addItemEl(el){
+  const id = parseInt(el.dataset.id);
+  const em = decodeURIComponent(el.dataset.em);
+  const it = cardapio.find(x => x.id === id);
+  if(!it) return;
+  if(it.tem_tamanho){ abrirSzModal(it, em); }
+  else { addItemDireto(id, it.nome, it.preco, em, null, null, null); }
+}
+
+function addItemDireto(id, nome, preco, em, tam, id2, nome2){
+  const chave = id + '|' + (tam||'') + '|' + (id2||'');
+  const ex = carrinho.find(c => c.chave === chave);
+  if(ex){ ex.qtd++; }
+  else { carrinho.push({id, chave, nome: nome+(id2?'/'+nome2:'')+(tam?' ('+tam.charAt(0).toUpperCase()+tam.slice(1)+')':''), preco, qtd:1, em}); }
+  const qc = carrinho.filter(c => c.id === id).reduce((s,c)=>s+c.qtd,0);
+  const card = document.getElementById('pc-'+id);
+  const badge = document.getElementById('pq-'+id);
+  if(card){ card.classList.toggle('selecionado', qc > 0); }
+  if(badge){ badge.textContent = qc > 0 ? qc : ''; }
+  atualizarTopBadge();
+}
+
+function atualizarTopBadge(){
+  const total = carrinho.reduce((s,c)=>s+c.qtd,0);
+  const n = document.getElementById('cartN');
+  n.textContent = total;
+  n.classList.toggle('on', total > 0);
+  document.getElementById('btnFin').disabled = (total === 0);
+}
+
+// ── Modal tamanho ─────────────────────────────────────────────────
+function abrirSzModal(it, em){
+  szItem = it; szTam = null; szMM = false; szSabor2 = null;
+  document.getElementById('szTitulo').textContent = it.nome;
+  ['Broto','Media','Grande'].forEach(t => {
+    const btn = document.getElementById('sz'+t);
+    const tam = t.toLowerCase();
+    const p   = tam==='broto'?it.preco_broto:tam==='media'?it.preco_media:it.preco_grande;
+    btn.classList.remove('sel');
+    btn.disabled = !(p > 0);
+    document.getElementById('sp'+t).textContent = p > 0 ? moeda(p) : '—';
+  });
+  document.getElementById('mmTitulo').style.display = 'none';
+  document.getElementById('mmToggle').classList.remove('on');
+  document.getElementById('mmToggle').textContent = '+ Ativar';
+  document.getElementById('mmLista1').classList.remove('on');
+  document.getElementById('szConfirmar').disabled = true;
+  document.getElementById('szConfirmar').textContent = 'Adicionar ao Pedido';
+  document.getElementById('szBg').classList.add('on');
+}
+function fecharSzModal(){ document.getElementById('szBg').classList.remove('on'); }
+
+function selecionarTam(tam){
+  szTam = tam; szMM = false; szSabor2 = null;
+  ['szBroto','szMedia','szGrande'].forEach(id => document.getElementById(id).classList.remove('sel'));
+  document.getElementById('sz'+tam.charAt(0).toUpperCase()+tam.slice(1)).classList.add('sel');
+  document.getElementById('mmTitulo').style.display = 'flex';
+  document.getElementById('mmToggle').classList.remove('on');
+  document.getElementById('mmToggle').textContent = '+ Ativar';
+  document.getElementById('mmLista1').classList.remove('on');
+  szSabor2 = null;
+  atualizarConfirmar();
+}
+
+function toggleMM(){
+  szMM = !szMM;
+  const btn = document.getElementById('mmToggle');
+  const sab = document.getElementById('mmLista1');
+  btn.classList.toggle('on', szMM);
+  btn.textContent = szMM ? '✕ Desativar' : '+ Ativar';
+  sab.classList.toggle('on', szMM);
+  if(szMM) popularListasMM();
+  else szSabor2 = null;
+  atualizarConfirmar();
+}
+
+function popularListasMM(){
+  const lista = cardapio.filter(x => x.tem_tamanho && x.id !== szItem.id);
+  document.getElementById('mmLista1').innerHTML = lista.map(p => {
+    const pt = szTam==='broto'?p.preco_broto:szTam==='media'?p.preco_media:p.preco_grande;
+    return '<div class="mm-item'+(szSabor2===p.id?' sel':'')+'" data-id="'+p.id+'" onclick="selecionarSabor2(this)">'
+      +'<span style="font-weight:700">'+p.nome+'</span>'
+      +'<span style="font-size:11px;color:var(--ouro2);display:block;margin-top:2px">'+moeda(pt)+'</span>'
+      +'</div>';
+  }).join('');
+}
+
+function selecionarSabor2(el){
+  szSabor2 = parseInt(el.dataset.id);
+  document.querySelectorAll('.mm-item').forEach(i => i.classList.remove('sel'));
+  el.classList.add('sel');
+  atualizarConfirmar();
+}
+
+function atualizarConfirmar(){
+  const btn = document.getElementById('szConfirmar');
+  if(!szTam){ btn.disabled=true; btn.textContent='Adicionar ao Pedido'; return; }
+  if(szMM && !szSabor2){ btn.disabled=true; btn.textContent='Escolha o 2º sabor'; return; }
+  const p1 = szTam==='broto'?szItem.preco_broto:szTam==='media'?szItem.preco_media:szItem.preco_grande;
+  let preco = p1, nomeTxt = szItem.nome, nome2 = null, id2 = null;
+  if(szMM && szSabor2){
+    const it2 = cardapio.find(x=>x.id===szSabor2);
+    const p2  = szTam==='broto'?it2.preco_broto:szTam==='media'?it2.preco_media:it2.preco_grande;
+    preco = Math.max(p1,p2); nomeTxt = szItem.nome+' / '+it2.nome; nome2 = it2.nome; id2 = it2.id;
+  }
+  btn.disabled = false;
+  btn.textContent = 'Adicionar — '+nomeTxt+' ('+szTam.charAt(0).toUpperCase()+szTam.slice(1)+') '+moeda(preco);
+}
+
+function confirmarPizza(){
+  const p1 = szTam==='broto'?szItem.preco_broto:szTam==='media'?szItem.preco_media:szItem.preco_grande;
+  let preco = p1, nome2 = null, id2 = null;
+  if(szMM && szSabor2){
+    const it2 = cardapio.find(x=>x.id===szSabor2);
+    const p2  = szTam==='broto'?it2.preco_broto:szTam==='media'?it2.preco_media:it2.preco_grande;
+    preco = Math.max(p1,p2); nome2 = it2.nome; id2 = it2.id;
+  }
+  addItemDireto(szItem.id, szItem.nome, preco, '🍕', szTam, id2, nome2);
+  fecharSzModal();
+}
+
+// ── Carrinho ──────────────────────────────────────────────────────
+function abrirCarrinho(){
+  renderSheet();
+  document.getElementById('sheetBg').classList.add('on');
+  document.getElementById('sheet').classList.add('on');
+}
+function fecharCarrinho(){
+  document.getElementById('sheetBg').classList.remove('on');
+  document.getElementById('sheet').classList.remove('on');
+}
+
+function renderSheet(){
+  const subtotal = carrinho.reduce((s,c) => s + c.preco*c.qtd, 0);
+  const total    = subtotal + TAXA;
+  const btn = document.getElementById('btnFin');
+
+  document.getElementById('carrinhoLista').innerHTML = !carrinho.length
+    ? '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Carrinho vazio</div>'
+    : carrinho.map((it,i) => {
+      const sub = it.preco * it.qtd;
+      return '<div class="crow">'
+        +'<div class="crow-nome">'+it.nome+'</div>'
+        +'<div style="display:flex;align-items:center;gap:6px">'
+        +'<button class="ctrl" onclick="mudaQtd('+i+',-1)">−</button>'
+        +'<span style="font-weight:800;min-width:18px;text-align:center">'+it.qtd+'</span>'
+        +'<button class="ctrl" onclick="mudaQtd('+i+',+1)">+</button>'
+        +'</div>'
+        +'<span class="crow-sub">'+moeda(sub)+'</span>'
+        +'</div>';
+    }).join('');
+
+  document.getElementById('subTotalVal').textContent = moeda(subtotal);
+  document.getElementById('totalVal').textContent    = moeda(total);
+  btn.disabled = carrinho.length === 0;
+}
+
+function mudaQtd(i, d){
+  const id = carrinho[i].id;
+  carrinho[i].qtd += d;
+  if(carrinho[i].qtd <= 0) carrinho.splice(i, 1);
+  const qc = carrinho.filter(c => c.id === id).reduce((s,c)=>s+c.qtd,0);
+  const card  = document.getElementById('pc-'+id);
+  const badge = document.getElementById('pq-'+id);
+  if(card)  card.classList.toggle('selecionado', qc > 0);
+  if(badge) badge.textContent = qc > 0 ? qc : '';
+  atualizarTopBadge();
+  renderSheet();
+}
+
+// ── Autocomplete de clientes ──────────────────────────────────────
+let _acTimer = null;
+async function buscarCliente(val){
+  const lista = document.getElementById('autocompleteLista');
+  if(!lista) return;
+  clearTimeout(_acTimer);
+  if(val.length < 2){ lista.style.display='none'; return; }
+  _acTimer = setTimeout(async () => {
+    try{
+      const r = await fetch(BASE + '/api/clientes?busca=' + encodeURIComponent(val));
+      const clientes = await r.json();
+      if(!Array.isArray(clientes) || !clientes.length){ lista.style.display='none'; return; }
+      lista.innerHTML = clientes.map(c => `
+        <div onclick="preencherCliente(${c.id})"
+          style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f3f4f6;font-size:13px"
+          onmouseenter="this.style.background='#f9fafb'" onmouseleave="this.style.background='#fff'">
+          <div style="font-weight:700;color:#1e293b">${c.nome||''}</div>
+          <div style="color:#6b7280;font-size:11px">${[c.telefone,c.endereco,c.bairro].filter(Boolean).join(' · ')}</div>
+        </div>`).join('');
+      lista._clientes = clientes;
+      lista.style.display = 'block';
+    }catch(e){ lista.style.display='none'; }
+  }, 280);
+}
+
+function preencherCliente(id){
+  const lista = document.getElementById('autocompleteLista');
+  if(!lista || !lista._clientes) return;
+  const c = lista._clientes.find(x => x.id === id);
+  if(!c) return;
+  document.getElementById('dlNome').value = c.nome     || '';
+  document.getElementById('dlTel').value  = c.telefone || '';
+  document.getElementById('dlEnd').value  = c.endereco || '';
+  if(c.bairro){
+    const sel = document.getElementById('dlBairro');
+    if(sel){
+      for(let i=0;i<sel.options.length;i++){
+        if(sel.options[i].text.split(' — ')[0].trim().toLowerCase() === c.bairro.toLowerCase()){
+          sel.selectedIndex = i;
+          selecionarBairro();
+          break;
+        }
+      }
+    }
+  }
+  lista.style.display = 'none';
+}
+
+document.addEventListener('click', function(e){
+  const lista = document.getElementById('autocompleteLista');
+  if(lista && !lista.contains(e.target) && e.target.id !== 'dlNome')
+    lista.style.display = 'none';
+});
+
+// ── Finalizar ─────────────────────────────────────────────────────
+async function finalizar(){
+  if(!carrinho.length) return;
+
+  // Valida campos
+  const nome   = document.getElementById('dlNome').value.trim();
+  const tel    = document.getElementById('dlTel').value.trim();
+  const end    = document.getElementById('dlEnd').value.trim();
+  const pag    = document.getElementById('dlPag').value;
+  const bairroSel = document.getElementById('dlBairro');
+  const bairroNome = bairroSel && bairroSel.value ? bairroSel.options[bairroSel.selectedIndex].text.split(' — ')[0] : '';
+  if(!nome){ alert('Informe seu nome'); document.getElementById('dlNome').focus(); return; }
+  if(!tel){  alert('Informe seu telefone'); document.getElementById('dlTel').focus(); return; }
+  if(!end){  alert('Informe o endereço de entrega'); document.getElementById('dlEnd').focus(); return; }
+  if(bairros.length && !bairroNome){ alert('Selecione seu bairro'); bairroSel.focus(); return; }
+  if(!pag){  alert('Selecione a forma de pagamento'); document.getElementById('dlPag').focus(); return; }
+
+  const ref    = document.getElementById('dlRef').value.trim();
+  const troco  = document.getElementById('dlTroco').value.trim();
+  const obs    = document.getElementById('dlObs').value.trim();
+  const subtotal = carrinho.reduce((s,c) => s + c.preco*c.qtd, 0);
+  const total    = subtotal + TAXA;
+
+  const observacao = [
+    '🛵 DELIVERY',
+    'Cliente: '+nome,
+    'Tel: '+tel,
+    'End: '+end+(bairroNome?' — '+bairroNome:''),
+    ref  ? 'Ref: '+ref   : '',
+    'Pagamento: '+pag+(troco?' (troco p/ '+troco+')':''),
+    obs  ? 'Obs: '+obs   : '',
+  ].filter(Boolean).join(' | ');
+
+  const btn  = document.getElementById('btnFin');
+  const spin = document.getElementById('spinEl');
+  btn.disabled = true; spin.classList.add('on');
+
+  try{
+    const r = await fetch(BASE + '/api/pedido/novo', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        mesa: '🛵 Delivery — '+nome,
+        total,
+        observacao,
+        tipo: 'delivery',
+        itens: carrinho.map(c => ({id:c.id, nome:c.nome, preco:c.preco, qtd:c.qtd})),
+      })
+    });
+    const d = await r.json();
+    if(d.ok){
+      pedidoNum = d.pedido.numero;
+      carrinho  = [];
+      atualizarTopBadge();
+      document.querySelectorAll('.pcard').forEach(el => el.classList.remove('selecionado'));
+      document.querySelectorAll('.pcard-qtd').forEach(el => el.textContent = '');
+      fecharCarrinho();
+      document.getElementById('modalNum').textContent = '#' + pedidoNum;
+      document.getElementById('modalEta').textContent = 'Tempo estimado: 40–60 minutos';
+      document.getElementById('modalBg').classList.add('on');
+    }
+  }catch(e){ alert('Erro ao enviar pedido. Verifique sua conexão.'); }
+
+  btn.disabled = false; spin.classList.remove('on');
+}
+
+function fecharModal(){
+  document.getElementById('modalBg').classList.remove('on');
+}
+
+function irAcompanhar(){
+  if(pedidoNum){
+    location.href = BASE + '/acompanhar?numero=' + encodeURIComponent(pedidoNum);
+  } else {
+    fecharModal();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
